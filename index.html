@@ -806,16 +806,16 @@
                 <table id="g4-student-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                     <thead style="background-color: var(--header-bg); color: var(--header-text);">
                         <tr>
-                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g3SortTable('name')">Name</th>
-                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g3SortTable('class')">Class</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('sas')">SAS</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('stanine')">Stanine</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('pct')">%</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('gr')">GR</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('qa')">Q Att (/54)</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('prev')">Prev SAS</th>
-                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g3SortTable('change')">Change</th>
-                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g3SortTable('ks2')">KS2 Ind</th>
+                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g4SortTable('name')">Name</th>
+                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g4SortTable('class')">Class</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('sas')">SAS</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('stanine')">Stanine</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('pct')">%</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('gr')">GR</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('qa')">Q Att (/54)</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('prev')">Prev SAS</th>
+                            <th style="padding: 0.8rem; text-align: right; cursor: pointer;" onclick="g4SortTable('change')">Change</th>
+                            <th style="padding: 0.8rem; text-align: left; cursor: pointer;" onclick="g4SortTable('ks2')">KS2 Ind</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -3773,12 +3773,11 @@ function g4DrawClassComparison() {
         curriculumCategories.forEach(cat => {
             if (!curriculumData[cls][cat]) curriculumData[cls][cat] = [];
             // Get questions for this category
-            const catQuestions = s.ptm_october.questions.filter(q => {
-                const qContent = g4QuestionContentMap[q.question_number];
-                return qContent && qContent.curriculum === cat;
+            const catQuestions = s.questions.filter(q => {
+                return q.curriculum_category === cat;
             });
             if (catQuestions.length > 0) {
-                const correct = catQuestions.filter(q => q.student_correct === 1).length;
+                const correct = catQuestions.filter(q => q.student_correct === true).length;
                 curriculumData[cls][cat].push((correct / catQuestions.length) * 100);
             }
         });
@@ -4088,21 +4087,21 @@ function g4DrawQuestionAnalysis() {
     // Compute all-classes question averages
     const questionMap = {};
     g4RawData.students.forEach(s => {
-        if (!s.ptm_october || !s.ptm_october.questions) return;
-        s.ptm_october.questions.forEach(q => {
-            if (!questionMap[q.question_number]) {
-                questionMap[q.question_number] = {
-                    question_number: q.question_number,
+        if (!s.questions) return;
+        s.questions.forEach(q => {
+            if (!questionMap[q.number]) {
+                questionMap[q.number] = {
+                    number: q.number,
                     curriculum_category: q.curriculum_category,
                     correct: 0,
                     total: 0,
                     standardisation_pct_correct: q.standardisation_pct_correct,
-                    content: g4QuestionContentMap[q.question_number] ? g4QuestionContentMap[q.question_number].content : q.question_number,
-                    process_category: g4QuestionContentMap[q.question_number] ? g4QuestionContentMap[q.question_number].process : 'Unknown'
+                    content: g4QuestionContentMap[q.number],
+                    process_category: q.curriculum_category
                 };
             }
-            questionMap[q.question_number].total++;
-            if (q.student_correct === 1) questionMap[q.question_number].correct++;
+            questionMap[q.number].total++;
+            if (q.student_correct === true) questionMap[q.number].correct++;
         });
     });
     
@@ -4111,21 +4110,21 @@ function g4DrawQuestionAnalysis() {
     if (g4CurrentClass !== 'ALL') {
         const classQuestionMap = {};
         g4FilteredStudents.forEach(s => {
-            if (!s.ptm_october || !s.ptm_october.questions) return;
-            s.ptm_october.questions.forEach(q => {
-                if (!classQuestionMap[q.question_number]) {
-                    classQuestionMap[q.question_number] = {
-                        question_number: q.question_number,
+            if (!s.questions) return;
+            s.questions.forEach(q => {
+                if (!classQuestionMap[q.number]) {
+                    classQuestionMap[q.number] = {
+                        number: q.number,
                         curriculum_category: q.curriculum_category,
                         correct: 0,
                         total: 0,
                         standardisation_pct_correct: q.standardisation_pct_correct,
-                        content: g4QuestionContentMap[q.question_number] ? g4QuestionContentMap[q.question_number].content : q.question_number,
-                        process_category: g4QuestionContentMap[q.question_number] ? g4QuestionContentMap[q.question_number].process : 'Unknown'
+                        content: g4QuestionContentMap[q.number],
+                        process_category: q.curriculum_category
                     };
                 }
-                classQuestionMap[q.question_number].total++;
-                if (q.student_correct === 1) classQuestionMap[q.question_number].correct++;
+                classQuestionMap[q.number].total++;
+                if (q.student_correct === true) classQuestionMap[q.number].correct++;
             });
         });
         qa_questions = Object.values(classQuestionMap).map(q => ({
