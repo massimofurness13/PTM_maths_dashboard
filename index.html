@@ -173,8 +173,8 @@
             </div>
             <div class="header-actions" style="display:flex; gap:0.8rem; align-items:center;">
                 <div id="lock-status" style="font-size:0.85rem; opacity:0.8; color:#7dcea0;">🔓 Names visible</div>
-                <input type="password" id="password-input" style="display:none" placeholder="Enter password" style="padding:0.5rem 0.8rem; border:1px solid rgba(255,255,255,0.3); border-radius:6px; background:rgba(255,255,255,0.15); color:white; font-size:0.85rem; width:140px; font-family:var(--font-stack);" onkeydown="if(event.key==='Enter')handleUnlock()">
-                <button class="btn btn-print" id="unlock-btn" style="display:none" onclick="handleUnlock()">Unlock</button>
+                <input type="password" id="password-input" style="display:none" placeholder="Enter password">
+                <button class="btn btn-print" id="unlock-btn" style="display:none">Unlock</button>
                 <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
             </div>
         </div>
@@ -582,8 +582,6 @@
             </div>
         </section>
 
-        </section>
-
         <!-- STUDENT TABLE -->
         <section id="g3-student-table-section" style="padding: 1.5rem 2rem;">
             <h2 style="margin-top: 0;">Student Table</h2>
@@ -744,7 +742,7 @@
         </section>
 
         <!-- PTM PROGRESS TRACKING -->
-        <section id="g4-ptm-progress-section" style="padding: 1.5rem 2rem; display: none; 1.5rem 2rem; display: none;">
+        <section id="g4-ptm-progress-section" style="padding: 1.5rem 2rem; display: none;">
             <h2>PTM Progress Tracking Over Time</h2>
             <div class="chart-container">
                 <canvas id="g4-ptm-trend-chart"></canvas>
@@ -799,8 +797,6 @@
             <div id="g4-insights-box">
                 <p>Loading findings...</p>
             </div>
-        </section>
-
         </section>
 
         <!-- STUDENT TABLE -->
@@ -1018,8 +1014,6 @@
             <div id="g2-insights-box">
                 <p>Loading findings...</p>
             </div>
-        </section>
-
         </section>
 
         <!-- STUDENT TABLE -->
@@ -2221,7 +2215,7 @@ function generateInsights() {
         .sort((a, b) => (b.ptm_october.sas - b.ptm_scores.may_2025) - (a.ptm_october.sas - a.ptm_scores.may_2025));
 
     // Test completion
-    const slowCompleters = filteredStudents.filter(s => s.ptm_october?.questions_attempted && s.questions_attempted < 50)
+    const slowCompleters = filteredStudents.filter(s => s.ptm_october?.questions_attempted && s.ptm_october.questions_attempted < 50)
         .sort((a, b) => a.ptm_october.questions_attempted - b.ptm_october.questions_attempted);
 
     // Per-student weakest skills from heatmap
@@ -2301,7 +2295,7 @@ function generateInsights() {
         html += `<div class="insight-box" style="border-left-color:#8e44ad; background:#f9f0ff;">`;
         html += `<h4 style="color:#8e44ad; margin-top:0;">Test Completion</h4>`;
         html += `<p><strong>${slowCompleters.length} student${slowCompleters.length > 1 ? 's' : ''} attempted fewer than 50 of 58 questions:</strong> `;
-        html += slowCompleters.map(s => `${shortName(s)} (${s.questions_attempted}/58, SAS ${s.ptm_october.sas})`).join(', ') + `.</p>`;
+        html += slowCompleters.map(s => `${shortName(s)} (${s.ptm_october.questions_attempted}/58, SAS ${s.ptm_october.sas})`).join(', ') + `.</p>`;
         html += `</div>`;
     }
 
@@ -2391,7 +2385,7 @@ function sortTable(col) {
         let g2NamesUnlocked = true;
         let g2CurrentClass = 'ALL';
         let g2FilteredStudents = [];
-        let g2Charts = {};
+        let g2Charts = { ptm_october: {} };
 
         // ============================================================
         // ============================================================
@@ -2401,7 +2395,7 @@ function sortTable(col) {
         let g3NamesUnlocked = true;
         let g3CurrentClass = 'ALL';
         let g3FilteredStudents = [];
-        let g3Charts = {};
+        let g3Charts = { ptm_october: {} };
         let g3Initialized = false;
 let g4NamesUnlocked = true;
 let g4CurrentClass = 'ALL';
@@ -4317,7 +4311,7 @@ function g4DrawTestCompletion() {
 
     // Scatter chart: Questions Attempted vs SAS
     const scatterData = g4FilteredStudents.filter(s => s.ptm_october).map(s => ({
-        x: s.questions_attempted || 0,
+        x: s.ptm_october?.questions_attempted || 0,
         y: s.ptm_october.sas || 0,
         name: s.name,
         class: s.class,
@@ -4387,7 +4381,7 @@ function g4DrawTestCompletion() {
         .sort((a, b) => (a.ptm_october.questions_attempted || 0) - (b.ptm_october.questions_attempted || 0));
 
     const barNames = sorted.map(s => s.name + ' [' + g4GetClassCode(s.class) + ']');
-    const qAttempted = sorted.map(s => s.questions_attempted || 0);
+    const qAttempted = sorted.map(s => s.ptm_october?.questions_attempted || 0);
 
     const barContainer = document.getElementById('g4-completion-bar-chart').parentElement;
     barContainer.style.height = Math.max(600, sorted.length * 28) + 'px';
@@ -4418,12 +4412,12 @@ function g4DrawTestCompletion() {
     });
 
     // Insights with three tiers
-    const under30 = g4FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) < 30);
+    const under30 = g4FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) < 30);
     const under38 = g4FilteredStudents.filter(s => {
-        const q = s.ptm_october ? s.questions_attempted : 0;
+        const q = s.ptm_october ? s.ptm_october.questions_attempted : 0;
         return q >= 30 && q < 38;
     });
-    const finished = g4FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) >= 38).length;
+    const finished = g4FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) >= 38).length;
 
     let html = '';
     if (g4CurrentClass === 'ALL') {
@@ -4432,10 +4426,10 @@ function g4DrawTestCompletion() {
         html += '<strong>🟢 ' + finished + ' student(s)</strong> attempted 38+ questions.';
     } else {
         if (under30.length > 0) {
-            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         if (under38.length > 0) {
-            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         html += '<strong>🟢 ' + finished + ' student(s) attempted 38+ questions.</strong>';
     }
@@ -4443,7 +4437,7 @@ function g4DrawTestCompletion() {
 
     // Missed Question Pattern Analysis
     const incompleteStudents = g4FilteredStudents.filter(s =>
-        s.ptm_october && s.questions_attempted && s.questions_attempted < 35 && g4QuestionPatterns[s.name]
+        s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35 && g4QuestionPatterns[s.name]
     );
 
     let mqHtml = '';
@@ -4461,7 +4455,7 @@ function g4DrawTestCompletion() {
             const pattern = g4QuestionPatterns[s.name];
             if (!pattern) return;
             const results = pattern.split('').map(Number);
-            const attempted = s.questions_attempted;
+            const attempted = s.ptm_october.questions_attempted;
             const totalWrong = results.filter(r => r === 0).length;
 
             let lastCorrect = 0;
@@ -4604,7 +4598,7 @@ function g4GenerateInsights() {
     const improvers = withProgress.filter(s => (s.ptm_october.sas - s.ptm_scores.may_2025) >= 8)
         .sort((a, b) => (b.ptm_october.sas - b.ptm_scores.may_2025) - (a.ptm_october.sas - a.ptm_scores.may_2025));
 
-    const slowCompleters = g4FilteredStudents.filter(s => s.ptm_october && s.questions_attempted && s.questions_attempted < 35)
+    const slowCompleters = g4FilteredStudents.filter(s => s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35)
         .sort((a, b) => a.ptm_october.questions_attempted - b.ptm_october.questions_attempted);
 
     const highNeedStudents = hStudents.filter(s => s.sas < 89).sort((a, b) => a.sas - b.sas);
@@ -4685,7 +4679,7 @@ function g4GenerateInsights() {
         html += '<div class="insight-box" style="border-left-color:#8e44ad; background:#f9f0ff;">';
         html += '<h4 style="color:#8e44ad; margin-top:0;">Test Completion</h4>';
         html += '<p><strong>' + slowCompleters.length + ' student' + (slowCompleters.length > 1 ? 's' : '') + ' attempted fewer than 35 of 54 questions:</strong> ';
-        html += slowCompleters.map(s => shortName(s) + ' (' + s.questions_attempted + '/54, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
+        html += slowCompleters.map(s => shortName(s) + ' (' + s.ptm_october.questions_attempted + '/54, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
         html += '</div>';
     }
 
@@ -5721,10 +5715,10 @@ function g3DrawTestCompletion() {
         html += '<strong>🟢 ' + finished + ' student(s)</strong> attempted 38+ questions.';
     } else {
         if (under30.length > 0) {
-            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g3GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         if (under38.length > 0) {
-            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g3GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         html += '<strong>🟢 ' + finished + ' student(s) attempted 38+ questions.</strong>';
     }
