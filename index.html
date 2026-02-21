@@ -1127,75 +1127,75 @@ function switchGrade(grade) {
 }
 
  else if (currentGrade === 'grade3') {
-        g3UnlockNames();
-    } else if (currentGrade === 'grade4') {
-        g4UnlockNames();
+
+
+
     } else {
-        unlockNames();
-    }
-}
+
+
+
 
 // ===== NAME DECRYPTION =====
-async ,
-            keyMaterial,
-            { name: 'AES-GCM', length: 256 },
-            false,
-            ['decrypt']
-        );
+// Removed broken unlock function
 
-        // Decrypt
-        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ciphertext);
-        const nameData = JSON.parse(new TextDecoder().decode(decrypted));
 
-        // Replace names in rawData
-        rawData.students.forEach(s => {
-            if (nameData.names[s.name]) {
-                s.name = nameData.names[s.name];
-            }
-        });
 
-        // Replace names in heatmap data
-        [heatmapData, kinnierHeatmapData, smithHeatmapData, truscottHeatmapData].forEach(hd => {
-            hd.students.forEach(hs => {
-                if (nameData.heatmap_names[hs.name]) {
-                    hs.short_name = nameData.heatmap_names[hs.name].short_name;
-                    hs.name = nameData.heatmap_names[hs.name].full_name;
-                }
-            });
-        });
 
-        // Replace names in question_analysis metadata
-        rawData.students.forEach(s => {
-            if (s.question_analysis && s.question_analysis.source_student && nameData.names[s.question_analysis.source_student]) {
-                s.question_analysis.source_student = nameData.names[s.question_analysis.source_student];
-            }
-            if (s.question_analysis_source && nameData.names[s.question_analysis_source]) {
-                s.question_analysis_source = nameData.names[s.question_analysis_source];
-            }
-        });
 
-        namesUnlocked = true;
 
-        // Update UI
-        document.getElementById('lock-status').textContent = '🔓 Names visible';
-        document.getElementById('lock-status').style.color = '#7dcea0';
-        document.getElementById('password-input').style.display = 'none';
-        document.getElementById('unlock-btn').style.display = 'none';
 
-        // Re-render everything
-        applyClassFilter();
-        updateDashboard();
 
-    } catch (e) {
-        document.getElementById('lock-status').textContent = '🔒 Wrong password';
-        document.getElementById('lock-status').style.color = '#e74c3c';
-        document.getElementById('password-input').value = '';
-        setTimeout(() => {
-            document.getElementById('lock-status').textContent = '🔒 Names redacted';
-            document.getElementById('lock-status').style.color = '';
-        }, 2000);
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -1522,7 +1522,7 @@ function drawStudentChange() {
 // ===== TEST COMPLETION ANALYSIS =====
 function drawTestCompletion() {
     const scatterData = filteredStudents.filter(s => s.ptm_october).map(s => ({
-        x: s.questions_attempted || 0,
+        x: s.ptm_october.questions_attempted || 0,
         y: s.ptm_october.sas || 0,
         name: s.name,
         class: s.class,
@@ -1641,10 +1641,10 @@ function drawTestCompletion() {
         html += `<strong>🟢 ${finished} student(s)</strong> attempted 56+ questions.`;
     } else {
         if (under45.length > 0) {
-            html += `<strong>🔴 ${under45.length} student(s) attempted fewer than 45 questions:</strong> ${under45.map(s => s.name.split(',')[0] + ' [' + getClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ')}.<br><br>`;
+            html += `<strong>🔴 ${under45.length} student(s) attempted fewer than 45 questions:</strong> ${under45.map(s => s.name.split(',')[0] + ' [' + getClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ')}.<br><br>`;
         }
         if (under56.length > 0) {
-            html += `<strong>🟡 ${under56.length} student(s) attempted 45–55 questions:</strong> ${under56.map(s => s.name.split(',')[0] + ' [' + getClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ')}.<br><br>`;
+            html += `<strong>🟡 ${under56.length} student(s) attempted 45–55 questions:</strong> ${under56.map(s => s.name.split(',')[0] + ' [' + getClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ')}.<br><br>`;
         }
         html += `<strong>🟢 ${finished} student(s) attempted 56+ questions.</strong>`;
     }
@@ -1654,7 +1654,7 @@ function drawTestCompletion() {
     // For students who attempted < 50 questions, analyse whether incorrect answers
     // are clustered at the end (ran out of time) or scattered throughout (knowledge gaps)
     const incompleteStudents = filteredStudents.filter(s =>
-        s.ptm_october?.questions_attempted && s.questions_attempted < 50 && questionPatterns[s.name]
+        s.ptm_october?.questions_attempted && s.ptm_october.questions_attempted < 50 && questionPatterns[s.name]
     );
 
     let mqHtml = '';
@@ -1673,7 +1673,7 @@ function drawTestCompletion() {
             const pattern = questionPatterns[s.name];
             if (!pattern) return;
             const results = pattern.split('').map(Number);
-            const attempted = s.questions_attempted;
+            const attempted = s.ptm_october.questions_attempted;
             const totalWrong = results.filter(r => r === 0).length;
 
             // Find last correct answer position (1-indexed)
@@ -1783,11 +1783,11 @@ function drawQuestionAnalysis() {
         qa = allClassesQuestionData;
     } else {
         // Compute question stats from filtered students for the selected class
-        const classStudents = filteredStudents.filter(s => s.ptm_october && s.questions);
+        const classStudents = filteredStudents.filter(s => s.ptm_october && s.ptm_october.questions);
         if (classStudents.length > 0 && classStudents[0].ptm_october.questions) {
             const qMap = {};
             classStudents.forEach(s => {
-                s.questions.forEach(q => {
+                s.ptm_october.questions.forEach(q => {
                     if (!qMap[q.number]) {
                         qMap[q.number] = { number: q.number, curriculum_category: q.curriculum_category, process_category: q.process_category, question_content: q.question_content, content: q.question_content, total: 0, correct: 0, standardisation_pct_correct: q.standardisation_pct_correct };
                     }
@@ -1813,8 +1813,8 @@ function drawQuestionAnalysis() {
 
     // Chart of all 58 questions
     const ctx = document.getElementById('questions-difficulty-chart').getContext('2d');
-    if (charts.questionsDifficulty) charts.questionsDifficulty.destroy();
-    charts.questionsDifficulty = new Chart(ctx, {
+    if (charts.ptm_october.questionsDifficulty) charts.ptm_october.questionsDifficulty.destroy();
+    charts.ptm_october.questionsDifficulty = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: questions.map(q => makeLabel(q)),
@@ -2613,7 +2613,7 @@ let g4Initialized = false;
         curriculumCategories.forEach(cat => {
             if (!curriculumData[cls][cat]) curriculumData[cls][cat] = [];
             // Get questions for this category
-            const catQuestions = s.questions.filter(q => {
+            const catQuestions = s.ptm_october.questions.filter(q => {
                 const qContent = g2QuestionContentMap[q.question_number];
                 return qContent && qContent.curriculum === cat;
             });
@@ -2827,7 +2827,7 @@ let g4Initialized = false;
 
     // Scatter chart: Questions Attempted vs SAS
     const scatterData = g2FilteredStudents.filter(s => s.ptm_october).map(s => ({
-        x: s.questions_attempted || 0,
+        x: s.ptm_october.questions_attempted || 0,
         y: s.ptm_october.sas || 0,
         name: s.name,
         class: s.class,
@@ -2897,7 +2897,7 @@ let g4Initialized = false;
         .sort((a, b) => (a.ptm_october.questions_attempted || 0) - (b.ptm_october.questions_attempted || 0));
 
     const barNames = sorted.map(s => s.name + ' [' + g2GetClassCode(s.class) + ']');
-    const qAttempted = sorted.map(s => s.questions_attempted || 0);
+    const qAttempted = sorted.map(s => s.ptm_october.questions_attempted || 0);
 
     const barContainer = document.getElementById('g2-completion-bar-chart').parentElement;
     barContainer.style.height = Math.max(600, sorted.length * 28) + 'px';
@@ -2928,12 +2928,12 @@ let g4Initialized = false;
     });
 
     // Insights with three tiers
-    const under30 = g2FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) < 30);
+    const under30 = g2FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) < 30);
     const under38 = g2FilteredStudents.filter(s => {
-        const q = s.ptm_october ? s.questions_attempted : 0;
+        const q = s.ptm_october ? s.ptm_october.questions_attempted : 0;
         return q >= 30 && q < 38;
     });
-    const finished = g2FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) >= 38).length;
+    const finished = g2FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) >= 38).length;
 
     let html = '';
     if (g2CurrentClass === 'ALL') {
@@ -2942,10 +2942,10 @@ let g4Initialized = false;
         html += '<strong>🟢 ' + finished + ' student(s)</strong> attempted 38+ questions.';
     } else {
         if (under30.length > 0) {
-            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g2GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g2GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         if (under38.length > 0) {
-            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g2GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g2GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         html += '<strong>🟢 ' + finished + ' student(s) attempted 38+ questions.</strong>';
     }
@@ -2953,7 +2953,7 @@ let g4Initialized = false;
 
     // Missed Question Pattern Analysis
     const incompleteStudents = g2FilteredStudents.filter(s =>
-        s.ptm_october && s.questions_attempted && s.questions_attempted < 35 && g2QuestionPatterns[s.name]
+        s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35 && g2QuestionPatterns[s.name]
     );
 
     let mqHtml = '';
@@ -2971,7 +2971,7 @@ let g4Initialized = false;
             const pattern = g2QuestionPatterns[s.name];
             if (!pattern) return;
             const results = pattern.split('').map(Number);
-            const attempted = s.questions_attempted;
+            const attempted = s.ptm_october.questions_attempted;
             const totalWrong = results.filter(r => r === 0).length;
 
             let lastCorrect = 0;
@@ -3068,8 +3068,8 @@ let g4Initialized = false;
     // Compute all-classes question averages
     const questionMap = {};
     g2RawData.students.forEach(s => {
-        if (!s.ptm_october || !s.questions) return;
-        s.questions.forEach(q => {
+        if (!s.ptm_october || !s.ptm_october.questions) return;
+        s.ptm_october.questions.forEach(q => {
             if (!questionMap[q.question_number]) {
                 questionMap[q.question_number] = {
                     question_number: q.question_number,
@@ -3091,8 +3091,8 @@ let g4Initialized = false;
     if (g2CurrentClass !== 'ALL') {
         const classQuestionMap = {};
         g2FilteredStudents.forEach(s => {
-            if (!s.ptm_october || !s.questions) return;
-            s.questions.forEach(q => {
+            if (!s.ptm_october || !s.ptm_october.questions) return;
+            s.ptm_october.questions.forEach(q => {
                 if (!classQuestionMap[q.question_number]) {
                     classQuestionMap[q.question_number] = {
                         question_number: q.question_number,
@@ -3132,8 +3132,8 @@ let g4Initialized = false;
 
     // Chart of all questions
     const ctx = document.getElementById('g2-questions-difficulty-chart').getContext('2d');
-    if (g2Charts.questionsDifficulty) g2Charts.questionsDifficulty.destroy();
-    g2Charts.questionsDifficulty = new Chart(ctx, {
+    if (g2Charts.ptm_october.questionsDifficulty) g2Charts.ptm_october.questionsDifficulty.destroy();
+    g2Charts.ptm_october.questionsDifficulty = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: questions.map(q => makeLabel(q)),
@@ -3525,7 +3525,7 @@ let g4Initialized = false;
     const improvers = withProgress.filter(s => (s.ptm_october.sas - s.ptm_scores.may_2025) >= 8)
         .sort((a, b) => (b.ptm_october.sas - b.ptm_scores.may_2025) - (a.ptm_october.sas - a.ptm_scores.may_2025));
 
-    const slowCompleters = g2FilteredStudents.filter(s => s.ptm_october && s.questions_attempted && s.questions_attempted < 35)
+    const slowCompleters = g2FilteredStudents.filter(s => s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35)
         .sort((a, b) => a.ptm_october.questions_attempted - b.ptm_october.questions_attempted);
 
     const highNeedStudents = hStudents.filter(s => s.sas < 89).sort((a, b) => a.sas - b.sas);
@@ -3606,7 +3606,7 @@ let g4Initialized = false;
         html += '<div class="insight-box" style="border-left-color:#8e44ad; background:#f9f0ff;">';
         html += '<h4 style="color:#8e44ad; margin-top:0;">Test Completion</h4>';
         html += '<p><strong>' + slowCompleters.length + ' student' + (slowCompleters.length > 1 ? 's' : '') + ' attempted fewer than 35 of 41 questions:</strong> ';
-        html += slowCompleters.map(s => shortName(s) + ' (' + s.questions_attempted + '/41, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
+        html += slowCompleters.map(s => shortName(s) + ' (' + s.ptm_october.questions_attempted + '/41, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
         html += '</div>';
     }
 
@@ -4911,7 +4911,7 @@ function g4SortTable(col) {
             } catch (e) {
                 alert('Error: ' + e.message);
             }
-        }
+
 
 function g4UpdateDashboard() {
     // Update intro stats
@@ -5104,7 +5104,7 @@ function g3DrawClassComparison() {
         curriculumCategories.forEach(cat => {
             if (!curriculumData[cls][cat]) curriculumData[cls][cat] = [];
             // Get questions for this category
-            const catQuestions = s.questions.filter(q => {
+            const catQuestions = s.ptm_october.questions.filter(q => {
                 const qContent = g3QuestionContentMap[q.question_number];
                 return qContent && qContent.curriculum === cat;
             });
@@ -5419,8 +5419,8 @@ function g3DrawQuestionAnalysis() {
     // Compute all-classes question averages
     const questionMap = {};
     g3RawData.students.forEach(s => {
-        if (!s.ptm_october || !s.questions) return;
-        s.questions.forEach(q => {
+        if (!s.ptm_october || !s.ptm_october.questions) return;
+        s.ptm_october.questions.forEach(q => {
             if (!questionMap[q.question_number]) {
                 questionMap[q.question_number] = {
                     question_number: q.question_number,
@@ -5442,8 +5442,8 @@ function g3DrawQuestionAnalysis() {
     if (g3CurrentClass !== 'ALL') {
         const classQuestionMap = {};
         g3FilteredStudents.forEach(s => {
-            if (!s.ptm_october || !s.questions) return;
-            s.questions.forEach(q => {
+            if (!s.ptm_october || !s.ptm_october.questions) return;
+            s.ptm_october.questions.forEach(q => {
                 if (!classQuestionMap[q.question_number]) {
                     classQuestionMap[q.question_number] = {
                         question_number: q.question_number,
@@ -5483,8 +5483,8 @@ function g3DrawQuestionAnalysis() {
 
     // Chart of all questions
     const ctx = document.getElementById('g3-questions-difficulty-chart').getContext('2d');
-    if (g3Charts.questionsDifficulty) g3Charts.questionsDifficulty.destroy();
-    g3Charts.questionsDifficulty = new Chart(ctx, {
+    if (g3Charts.ptm_october.questionsDifficulty) g3Charts.ptm_october.questionsDifficulty.destroy();
+    g3Charts.ptm_october.questionsDifficulty = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: questions.map(q => makeLabel(q)),
@@ -5606,7 +5606,7 @@ function g3DrawTestCompletion() {
 
     // Scatter chart: Questions Attempted vs SAS
     const scatterData = g3FilteredStudents.filter(s => s.ptm_october).map(s => ({
-        x: s.questions_attempted || 0,
+        x: s.ptm_october.questions_attempted || 0,
         y: s.ptm_october.sas || 0,
         name: s.name,
         class: s.class,
@@ -5676,7 +5676,7 @@ function g3DrawTestCompletion() {
         .sort((a, b) => (a.ptm_october.questions_attempted || 0) - (b.ptm_october.questions_attempted || 0));
 
     const barNames = sorted.map(s => s.name + ' [' + g3GetClassCode(s.class) + ']');
-    const qAttempted = sorted.map(s => s.questions_attempted || 0);
+    const qAttempted = sorted.map(s => s.ptm_october.questions_attempted || 0);
 
     const barContainer = document.getElementById('g3-completion-bar-chart').parentElement;
     barContainer.style.height = Math.max(600, sorted.length * 28) + 'px';
@@ -5707,12 +5707,12 @@ function g3DrawTestCompletion() {
     });
 
     // Insights with three tiers
-    const under30 = g3FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) < 30);
+    const under30 = g3FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) < 30);
     const under38 = g3FilteredStudents.filter(s => {
-        const q = s.ptm_october ? s.questions_attempted : 0;
+        const q = s.ptm_october ? s.ptm_october.questions_attempted : 0;
         return q >= 30 && q < 38;
     });
-    const finished = g3FilteredStudents.filter(s => (s.ptm_october ? s.questions_attempted : 0) >= 38).length;
+    const finished = g3FilteredStudents.filter(s => (s.ptm_october ? s.ptm_october.questions_attempted : 0) >= 38).length;
 
     let html = '';
     if (g3CurrentClass === 'ALL') {
@@ -5721,10 +5721,10 @@ function g3DrawTestCompletion() {
         html += '<strong>🟢 ' + finished + ' student(s)</strong> attempted 38+ questions.';
     } else {
         if (under30.length > 0) {
-            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🔴 ' + under30.length + ' student(s) attempted fewer than 30 questions:</strong> ' + under30.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         if (under38.length > 0) {
-            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.questions_attempted + ')').join(', ') + '.<br><br>';
+            html += '<strong>🟡 ' + under38.length + ' student(s) attempted 30–37 questions:</strong> ' + under38.map(s => s.name.split(',')[0] + ' [' + g4GetClassCode(s.class) + '] (' + s.ptm_october.questions_attempted + ')').join(', ') + '.<br><br>';
         }
         html += '<strong>🟢 ' + finished + ' student(s) attempted 38+ questions.</strong>';
     }
@@ -5732,7 +5732,7 @@ function g3DrawTestCompletion() {
 
     // Missed Question Pattern Analysis
     const incompleteStudents = g3FilteredStudents.filter(s =>
-        s.ptm_october && s.questions_attempted && s.questions_attempted < 35 && g3QuestionPatterns[s.name]
+        s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35 && g3QuestionPatterns[s.name]
     );
 
     let mqHtml = '';
@@ -5750,7 +5750,7 @@ function g3DrawTestCompletion() {
             const pattern = g3QuestionPatterns[s.name];
             if (!pattern) return;
             const results = pattern.split('').map(Number);
-            const attempted = s.questions_attempted;
+            const attempted = s.ptm_october.questions_attempted;
             const totalWrong = results.filter(r => r === 0).length;
 
             let lastCorrect = 0;
@@ -5893,7 +5893,7 @@ function g3GenerateInsights() {
     const improvers = withProgress.filter(s => (s.ptm_october.sas - s.ptm_scores.may_2025) >= 8)
         .sort((a, b) => (b.ptm_october.sas - b.ptm_scores.may_2025) - (a.ptm_october.sas - a.ptm_scores.may_2025));
 
-    const slowCompleters = g3FilteredStudents.filter(s => s.ptm_october && s.questions_attempted && s.questions_attempted < 35)
+    const slowCompleters = g3FilteredStudents.filter(s => s.ptm_october && s.ptm_october.questions_attempted && s.ptm_october.questions_attempted < 35)
         .sort((a, b) => a.ptm_october.questions_attempted - b.ptm_october.questions_attempted);
 
     const highNeedStudents = hStudents.filter(s => s.sas < 89).sort((a, b) => a.sas - b.sas);
@@ -5974,7 +5974,7 @@ function g3GenerateInsights() {
         html += '<div class="insight-box" style="border-left-color:#8e44ad; background:#f9f0ff;">';
         html += '<h4 style="color:#8e44ad; margin-top:0;">Test Completion</h4>';
         html += '<p><strong>' + slowCompleters.length + ' student' + (slowCompleters.length > 1 ? 's' : '') + ' attempted fewer than 35 of 46 questions:</strong> ';
-        html += slowCompleters.map(s => shortName(s) + ' (' + s.questions_attempted + '/46, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
+        html += slowCompleters.map(s => shortName(s) + ' (' + s.ptm_october.questions_attempted + '/46, SAS ' + s.ptm_october.sas + ')').join(', ') + '.</p>';
         html += '</div>';
     }
 
@@ -6200,7 +6200,7 @@ function g3SortTable(col) {
             } catch (e) {
                 alert('Error: ' + e.message);
             }
-        }
+
 
 function g3UpdateDashboard() {
     // Update intro stats

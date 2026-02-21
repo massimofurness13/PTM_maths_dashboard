@@ -8,7 +8,7 @@
 
 ### Safeguarding
 
-Student names are encrypted using AES-256 and require a password to view. No unencrypted student data is stored in this repository.
+This dashboard contains student assessment data. Please ensure the repository remains private or that access is appropriately controlled.
 
 ---
 
