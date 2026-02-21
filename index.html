@@ -1266,11 +1266,13 @@ async function unlockNames(password) {
 
         // Replace names in heatmap data
         [heatmapData, kinnierHeatmapData, smithHeatmapData, truscottHeatmapData].forEach(hd => {
-            hd.students.forEach(hs => {
-                if (decryptedNames[hs.name]) {
-                    hs.name = decryptedNames[hs.name];
-                }
-            });
+            if (hd && hd.students) {
+                hd.students.forEach(hs => {
+                    if (decryptedNames[hs.name]) {
+                        hs.name = decryptedNames[hs.name];
+                    }
+                });
+            }
         });
 
         // Replace names in question_analysis metadata
@@ -1286,11 +1288,12 @@ async function unlockNames(password) {
         namesUnlocked = true;
 
         // Re-render everything
-        applyClassFilter();
-        updateDashboard();
+        try { applyClassFilter(); } catch(e) { /* may fail if grade not visible */ }
+        try { updateDashboard(); } catch(e) { /* may fail if grade not visible */ }
         return true;
 
     } catch (e) {
+        console.error('G5 unlock error:', e);
         return false;
     }
 }
@@ -4882,7 +4885,7 @@ function g4RenderHeatmap(data, classLabel, wrapperId, cardsId, insightsId) {
             html += '</tr></thead><tbody>';
 
             students.forEach(s => {
-                const displayName = s.short_name || s.name;
+                const displayName = s.name || s.short_name;
                 html += '<tr><td class="student-name">' + displayName + '</td>';
                 const sasPct = Math.min(100, Math.max(0, (s.sas - 60) / 0.7));
                 html += '<td class="sas-cell" style="background:' + heatColor(sasPct) + ';color:' + heatTextColor(sasPct) + '">' + s.sas + '</td>';
@@ -6359,7 +6362,7 @@ async function g3UnlockNames(password) {
                 });
 
                 // Also update heatmap student names with full names
-                [g3CastellanosHeatmap, g3CastilloHeatmap, g3RugmaHeatmap, g3TuttyHeatmap].forEach(hd => {
+                [g3CastellanosHeatmap, g3ElisaHeatmap, g3RugamasHeatmap, g3TuttyHeatmap].forEach(hd => {
                     if (hd && hd.students) {
                         hd.students.forEach(hs => {
                             if (decryptedNames[hs.name]) {
